@@ -1,93 +1,109 @@
-// import { INodeTransportProtocol } from '../interfaces/node-transport-protocol';
-// import { ICommand } from '../interfaces/command';
-// import { ICommandBuilder } from '../interfaces/command-builder';
+import { INodeTransportProtocol } from '../interfaces/node-transport-protocol';
+import { ICommand } from '../interfaces/command';
+import { ICommandBuilder } from '../interfaces/command-builder';
 
-// export class StandardNodeTransportProtocol implements INodeTransportProtocol {
-//   protected correlationActions: {} = {};
+export class StandardNodeTransportProtocol implements INodeTransportProtocol {
+  protected correlationActions: {} = {};
 
-//   constructor(
-//     protected commandBuilder: ICommandBuilder,
-//     protected timeout: number,
-//     protected sendFn: (obj: any) => void,
-//   ) {}
+  constructor(
+    protected commandBuilder: ICommandBuilder,
+    protected timeout: number,
+    protected sendFn: (obj: any) => void,
+  ) {}
 
-//   public async canExecute(command: ICommand): Promise<boolean> {
-//     return new Promise<boolean>((resolve: (result: boolean) => void, reject: (error: Error) => void) => {
-//       const commandId: string = command.getId();
+  public canExecute(command: ICommand): Promise<boolean> {
+    return this.sendCommand<boolean>(command, 'canExecute');
+  }
 
-//       this.correlationActions[`${commandId}-canExecute`] = {
-//         resolve,
-//         reject,
-//       };
+  public doExecute(command: ICommand): Promise<boolean> {
+    return this.sendCommand<boolean>(command, 'doExecute');
+  }
 
-//       setTimeout(() => {
-//         if (!this.correlationActions[`${commandId}-canExecute`]) {
-//           return;
-//         }
+  public async preExecute(command: ICommand): Promise<boolean> {
+    return this.sendCommand<boolean>(command, 'preExecute');
+  }
 
-//         reject(new Error('Timeout'));
+  public async undo(command: ICommand): Promise<void> {
+    return this.sendCommand<void>(command, 'undo');
+  }
 
-//         delete this.correlationActions[`${commandId}-canExecute`];
-//       }, this.timeout);
+  public async receive(obj: any): Promise<void> {
+    const command: ICommand = this.commandBuilder.reset().build(obj.command);
 
-//       this.sendFn({
-//         command,
-//         type: 'canExecuteRequest',
-//       });
-//     });
-//   }
+    if (obj.type === 'canExecuteRequest') {
+      await this.handleCanExecuteRequest(command);
+    } else if (obj.type === 'canExecuteResponse') {
+      await this.handleCanExecuteResponse(command, obj.success);
+    } else if (obj.type === 'doExecuteRequest') {
+      throw new Error('Not Implemented Yet');
+    } else if (obj.type === 'doExecuteResponse') {
+      throw new Error('Not Implemented Yet');
+    } else if (obj.type === 'preExecuteRequest') {
+      throw new Error('Not Implemented Yet');
+    } else if (obj.type === 'preExecuteResponse') {
+      throw new Error('Not Implemented Yet');
+    } else if (obj.type === 'undoRequest') {
+      throw new Error('Not Implemented Yet');
+    } else if (obj.type === 'undoResponse') {
+      throw new Error('Not Implemented Yet');
+    }
+  }
 
-//   public async doExecute(command: ICommand): Promise<boolean> {
-//     return null;
-//   }
+  protected async handleCanExecuteRequest(command: ICommand): Promise<void> {
+    const canExecuteResult: boolean = await command.canExecute();
 
-//   public async preExecute(command: ICommand): Promise<boolean> {
-//     return null;
-//   }
+    if (!canExecuteResult) {
+      await this.sendFn({
+        command: command.serialize(),
+        success: false,
+        type: 'canExecuteResponse',
+      });
 
-//   public async undo(command: ICommand): Promise<void> {
-//     return null;
-//   }
+      return;
+    }
 
-//   public async receive(obj: any): Promise<void> {
-//     const command: ICommand = this.commandBuilder.reset().build(obj.command);
+    await this.sendFn({
+      command: command.serialize(),
+      success: true,
+      type: 'canExecuteResponse',
+    });
+  }
 
-//     if (obj.type === 'canExecuteRequest') {
-//       await this.handleCanExecuteRequest(command);
-//     } else if (obj.type === 'canExecuteResponse') {
-//       await this.handleCanExecuteResponse(command, obj.success);
-//     }
-//   }
+  protected async handleCanExecuteResponse(command: ICommand, success: boolean): Promise<void> {
+    const commandId: string = command.getId();
 
-//   protected async handleCanExecuteRequest(command: ICommand): Promise<void> {
-//     const canExecuteResult: boolean = await command.canExecute();
+    if (!this.correlationActions[`${commandId}-canExecute`]) {
+      return;
+    }
 
-//     if (!canExecuteResult) {
-//       await this.sendFn({
-//         command: command.serialize(),
-//         success: false,
-//         type: 'canExecuteResponse',
-//       });
+    this.correlationActions[`${commandId}-canExecute`].resolve(success);
 
-//       return;
-//     }
+    delete this.correlationActions[`${commandId}-canExecute`];
+  }
 
-//     await this.sendFn({
-//       command: command.serialize(),
-//       success: true,
-//       type: 'canExecuteResponse',
-//     });
-//   }
+  protected sendCommand<T>(command: ICommand, type: string): Promise<T> {
+    return new Promise<T>((resolve: (result: T) => void, reject: (error: Error) => void) => {
+      const commandId: string = command.getId();
 
-//   protected async handleCanExecuteResponse(command: ICommand, success: boolean): Promise<void> {
-//     const commandId: string = command.getId();
+      this.correlationActions[`${commandId}-${type}`] = {
+        resolve,
+        reject,
+      };
 
-//     if (!this.correlationActions[`${commandId}-canExecute`]) {
-//       return;
-//     }
+      setTimeout(() => {
+        if (!this.correlationActions[`${commandId}-${type}`]) {
+          return;
+        }
 
-//     this.correlationActions[`${commandId}-canExecute`].resolve(success);
+        reject(new Error('Timeout'));
 
-//     delete this.correlationActions[`${commandId}-canExecute`];
-//   }
-// }
+        delete this.correlationActions[`${commandId}-${type}`];
+      }, this.timeout);
+
+      this.sendFn({
+        command: command.serialize(),
+        type: `${type}Request`,
+      });
+    });
+  }
+}
