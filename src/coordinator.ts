@@ -3,7 +3,7 @@ import { INodeTransportProtocol } from './interfaces/node-transport-protocol';
 import { QuorumPromiseHelper } from './helpers/quorum-promise';
 
 export class Coordinator {
-  constructor(protected nodes: Array<INodeTransportProtocol>) {}
+  constructor(protected nodes: Array<INodeTransportProtocol>, protected timeout: number) {}
 
   public async execute(command: ICommand): Promise<boolean> {
     const canExecute: boolean = await this.canExecute(command);
@@ -38,8 +38,11 @@ export class Coordinator {
       return node.canExecute(command);
     });
 
+    canExecutePromises.push(command.canExecute());
+
     const canExecuteResults: Array<boolean> = await QuorumPromiseHelper.execute<boolean>(
       canExecutePromises,
+      this.timeout,
       (result: boolean) => {
         return result;
       },
@@ -57,8 +60,11 @@ export class Coordinator {
       return node.doExecute(command);
     });
 
+    doExecutePromises.push(command.doExecute());
+
     const doExecuteResults: Array<boolean> = await QuorumPromiseHelper.execute<boolean>(
       doExecutePromises,
+      this.timeout,
       (result: boolean) => {
         return result;
       },
@@ -76,8 +82,11 @@ export class Coordinator {
       return node.preExecute(command);
     });
 
+    preExecutePromises.push(command.preExecute());
+
     const preExecuteResults: Array<boolean> = await QuorumPromiseHelper.execute<boolean>(
       preExecutePromises,
+      this.timeout,
       (result: boolean) => {
         return result;
       },
@@ -94,6 +103,8 @@ export class Coordinator {
     const undoPromises: Array<Promise<void>> = this.nodes.map((node: INodeTransportProtocol) => {
       return node.undo(command);
     });
+
+    undoPromises.push(command.undo());
 
     await undoPromises;
   }

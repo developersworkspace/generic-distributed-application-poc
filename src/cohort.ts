@@ -13,7 +13,7 @@ export class Cohort {
     return command.preExecute();
   }
 
-  public undo(command: ICommand): Promise<boolean> {
+  public undo(command: ICommand): Promise<void> {
     return command.undo();
   }
 }

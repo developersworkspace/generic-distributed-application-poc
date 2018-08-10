@@ -1,5 +1,5 @@
 export class QuorumPromiseHelper {
-  public static execute<T>(promises: Array<Promise<T>>, validatorFn: (result: T) => boolean): Promise<Array<T>> {
+  public static execute<T>(promises: Array<Promise<T>>, timeout: number, validatorFn: (result: T) => boolean): Promise<Array<T>> {
     let completed: boolean = false;
 
     const results: Array<T> = [];
@@ -13,8 +13,6 @@ export class QuorumPromiseHelper {
     let unsuccessfulCount: number = 0;
 
     return new Promise<Array<T>>((resolve: (array: Array<T>) => void, reject: (error: Error) => void) => {
-      const timeout: number = 200;
-
       for (const promise of promises) {
         let promiseCompleted: boolean = false;
 

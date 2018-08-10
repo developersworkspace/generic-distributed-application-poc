@@ -6,6 +6,7 @@ describe('QuorumPromiseHelper', () => {
     it('Should return array of 3 items given 4 successful items', async () => {
       const result: Array<boolean> = await QuorumPromiseHelper.execute(
         buildPromises([true, true, true, true]),
+        200,
         (result: boolean) => {
           return result;
         },
@@ -15,19 +16,21 @@ describe('QuorumPromiseHelper', () => {
     });
 
     it('Should return array of 3 items given 3 successful items and 1 uncompleted items', async () => {
-        const result: Array<boolean> = await QuorumPromiseHelper.execute(
-          buildPromises([true, true, true, undefined]),
-          (result: boolean) => {
-            return result;
-          },
-        );
-  
-        expect(result.length).to.be.eq(3);
-      });
+      const result: Array<boolean> = await QuorumPromiseHelper.execute(
+        buildPromises([true, true, true, undefined]),
+        200,
+        (result: boolean) => {
+          return result;
+        },
+      );
+
+      expect(result.length).to.be.eq(3);
+    });
 
     it('Should return null given 2 successful items and 2 unsuccessful items', async () => {
       const result: Array<boolean> = await QuorumPromiseHelper.execute(
         buildPromises([true, true, false, false]),
+        200,
         (result: boolean) => {
           return result;
         },
@@ -39,6 +42,7 @@ describe('QuorumPromiseHelper', () => {
     it('Should return null given 2 successful items and 2 failed items', async () => {
       const result: Array<boolean> = await QuorumPromiseHelper.execute(
         buildPromises([true, true, null, null]),
+        200,
         (result: boolean) => {
           return result;
         },
@@ -50,6 +54,7 @@ describe('QuorumPromiseHelper', () => {
     it('Should return null given 2 successful items and 2 uncompleted items', async () => {
       const result: Array<boolean> = await QuorumPromiseHelper.execute(
         buildPromises([true, true, undefined, undefined]),
+        200,
         (result: boolean) => {
           return result;
         },

@@ -4,12 +4,12 @@ export interface ICommand {
 
     doExecute(): Promise<boolean>;
 
-    getId(): Promise<string>
+    getId(): string;
 
     preExecute(): Promise<boolean>;
 
     serialize(): Promise<any>;
 
-    undo(): Promise<boolean>;
+    undo(): Promise<void>;
 
 }
