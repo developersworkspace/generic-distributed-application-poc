@@ -1,5 +1,5 @@
 export interface ICommand {
-
+    
     canExecute(): Promise<boolean>;
 
     doExecute(): Promise<boolean>;

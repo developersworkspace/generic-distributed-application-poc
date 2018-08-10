@@ -1,31 +1,32 @@
 import { INodeTransportProtocol } from '../interfaces/node-transport-protocol';
 import { ICommand } from '../interfaces/command';
 import { ICommandBuilder } from '../interfaces/command-builder';
+import { CommandInvoker } from '../command-invoker';
 
 export class InMemoryNodeTransportProtocol implements INodeTransportProtocol {
-  constructor(protected commandBuilder: ICommandBuilder) {}
+  constructor(protected commandBuilder: ICommandBuilder, protected commandInvoker: CommandInvoker) {}
 
-  public canExecute(command: ICommand): Promise<boolean> {
+  public canExecute(command: any, index: number): Promise<boolean> {
     command = this.commandBuilder.reset().build(command);
 
-    return command.canExecute();
+    return this.commandInvoker.invokeCanExecute(command, index);
   }
 
-  public doExecute(command: ICommand): Promise<boolean> {
+  public doExecute(command: ICommand, index: number): Promise<boolean> {
     command = this.commandBuilder.reset().build(command);
 
-    return command.doExecute();
+    return this.commandInvoker.invokeDoExecute(command, index);
   }
 
-  public preExecute(command: ICommand): Promise<boolean> {
+  public preExecute(command: ICommand, index: number): Promise<boolean> {
     command = this.commandBuilder.reset().build(command);
 
-    return command.preExecute();
+    return this.commandInvoker.invokePreExecute(command, index);
   }
 
-  public undo(command: ICommand): Promise<void> {
+  public undo(command: ICommand, index: number): Promise<void> {
     command = this.commandBuilder.reset().build(command);
 
-    return command.undo();
+    return this.commandInvoker.invokeUndo(command, index);
   }
 }

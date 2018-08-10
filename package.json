@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "start": "tsc & node ./dist/src/sample/main.js",
     "test-with-coverage": "tsc && istanbul cover node_modules/mocha/bin/_mocha ./dist/tests/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "test": "mocha --require ts-node/register ./tests/**/*.spec.ts"
   },
