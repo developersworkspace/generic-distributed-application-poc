@@ -1,1 +1,1 @@
-# generic-distributed-application-poc
+# Generic Distributed Application POC

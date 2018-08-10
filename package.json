@@ -1,0 +1,27 @@
+{
+  "name": "generic-distributed-application-poc",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test-with-coverage": "tsc && istanbul cover node_modules/mocha/bin/_mocha ./dist/tests/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "test": "mocha --require ts-node/register ./tests/**/*.spec.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/developersworkspace/generic-distributed-application-poc.git"
+  },
+  "author": "Barend Erasmus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/developersworkspace/generic-distributed-application-poc/issues"
+  },
+  "homepage": "https://github.com/developersworkspace/generic-distributed-application-poc#readme",
+  "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.0",
+    "typescript": "^3.0.1"
+  }
+}
